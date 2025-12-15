@@ -1,0 +1,12 @@
+{
+  "name": "Default",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "hostRequirements": {
+    "memory": "64gb",
+    "storage": "64gb"
+  },
+  "remoteUser": "codespace",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  }
+}
