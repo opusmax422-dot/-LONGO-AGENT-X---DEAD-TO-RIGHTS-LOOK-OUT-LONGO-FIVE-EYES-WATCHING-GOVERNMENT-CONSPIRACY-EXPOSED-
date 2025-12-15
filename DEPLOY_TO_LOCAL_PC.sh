@@ -11,17 +11,18 @@ echo "  DEPLOYING AGENT X TO LOCAL FORTRESS"
 echo "=================================================="
 echo ""
 
-REPO_DIR="-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-"
+REPO_NAME="-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-"
+REPO_URL="https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git"
 
 # Clone/update the repository
-if [ -d "$REPO_DIR" ]; then
+if [ -d "$REPO_NAME" ]; then
     echo "📂 Repository exists - updating..."
-    cd "$REPO_DIR"
+    cd "$REPO_NAME"
     git pull origin main
 else
     echo "📥 Cloning repository..."
-    git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
-    cd "$REPO_DIR"
+    git clone "$REPO_URL"
+    cd "$REPO_NAME"
 fi
 
 echo ""
