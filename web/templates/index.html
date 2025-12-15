@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent X - Fortress AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">
+                <h1>🏰 AGENT X</h1>
+                <p class="subtitle">Fortress AI - Autonomous Legal Intelligence</p>
+            </div>
+            <div class="status" id="status">
+                <span class="status-indicator" id="status-indicator">●</span>
+                <span id="status-text">Checking...</span>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container" id="chat-container">
+            <!-- Welcome message -->
+            <div class="message ai-message">
+                <div class="message-content">
+                    <strong>Agent X Ready</strong><br>
+                    I'm your autonomous legal AI assistant. I can help with:
+                    <ul>
+                        <li>Legal research and analysis</li>
+                        <li>Civil rights law questions</li>
+                        <li>Document review and drafting</li>
+                        <li>Case strategy discussion</li>
+                    </ul>
+                    <em>100% offline and private. Your conversations stay on your PC.</em><br><br>
+                    <strong>Windows Speech Input:</strong> Press <kbd>Windows Key + H</kbd> to dictate your question.
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <textarea 
+                id="user-input" 
+                placeholder="Type your question here, or press Windows Key+H to use speech input..."
+                rows="3"
+            ></textarea>
+            <div class="input-controls">
+                <div class="left-controls">
+                    <button id="clear-btn" class="btn btn-secondary" onclick="clearChat()">
+                        🗑️ Clear Chat
+                    </button>
+                    <button id="copy-btn" class="btn btn-secondary" onclick="copyLastResponse()" disabled>
+                        📋 Copy Response
+                    </button>
+                </div>
+                <button id="send-btn" class="btn btn-primary" onclick="sendMessage()">
+                    📤 Send
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>🔒 100% Offline • 🏠 localhost:8080 • 🤖 Qwen 2.5:7B</span>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let isProcessing = false;
+        let lastAiResponse = "";
+
+        // Check system status on load
+        window.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+            // Check status every 30 seconds
+            setInterval(checkStatus, 30000);
+        });
+
+        // Check system status
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                const indicator = document.getElementById('status-indicator');
+                const statusText = document.getElementById('status-text');
+                
+                if (data.ollama_running) {
+                    indicator.className = 'status-indicator status-online';
+                    statusText.textContent = `Online (${data.conversation_count} messages)`;
+                } else {
+                    indicator.className = 'status-indicator status-offline';
+                    statusText.textContent = 'Ollama Offline';
+                }
+            } catch (error) {
+                console.error('Status check failed:', error);
+            }
+        }
+
+        // Send message to AI
+        async function sendMessage() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Clear input
+            input.value = '';
+            
+            // Show thinking indicator
+            const thinkingId = addThinkingIndicator();
+            isProcessing = true;
+            updateSendButton(true);
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Remove thinking indicator
+                removeThinkingIndicator(thinkingId);
+                
+                if (data.response) {
+                    addMessage(data.response, 'ai');
+                    lastAiResponse = data.response;
+                    document.getElementById('copy-btn').disabled = false;
+                } else if (data.error) {
+                    addMessage(`Error: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                removeThinkingIndicator(thinkingId);
+                addMessage(`Connection Error: ${error.message}`, 'error');
+            } finally {
+                isProcessing = false;
+                updateSendButton(false);
+                checkStatus();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(content, type) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Format content (preserve line breaks)
+            contentDiv.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Format message (convert newlines to <br>)
+        function formatMessage(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Add thinking indicator
+        function addThinkingIndicator() {
+            const chatContainer = document.getElementById('chat-container');
+            const thinkingDiv = document.createElement('div');
+            const thinkingId = 'thinking-' + Date.now();
+            thinkingDiv.id = thinkingId;
+            thinkingDiv.className = 'message ai-message thinking';
+            thinkingDiv.innerHTML = '<div class="message-content">🤔 AI thinking...</div>';
+            chatContainer.appendChild(thinkingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return thinkingId;
+        }
+
+        // Remove thinking indicator
+        function removeThinkingIndicator(thinkingId) {
+            const element = document.getElementById(thinkingId);
+            if (element) {
+                element.remove();
+            }
+        }
+
+        // Update send button state
+        function updateSendButton(processing) {
+            const sendBtn = document.getElementById('send-btn');
+            if (processing) {
+                sendBtn.disabled = true;
+                sendBtn.textContent = '⏳ Processing...';
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '📤 Send';
+            }
+        }
+
+        // Clear chat
+        async function clearChat() {
+            if (!confirm('Clear conversation history?')) return;
+            
+            try {
+                await fetch('/api/clear', { method: 'POST' });
+                
+                // Clear UI
+                const chatContainer = document.getElementById('chat-container');
+                chatContainer.innerHTML = `
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            <strong>Conversation Cleared</strong><br>
+                            Previous conversation saved to logs. Ready for new questions.
+                        </div>
+                    </div>
+                `;
+                
+                lastAiResponse = "";
+                document.getElementById('copy-btn').disabled = true;
+                checkStatus();
+                
+            } catch (error) {
+                alert('Failed to clear conversation: ' + error.message);
+            }
+        }
+
+        // Copy last AI response
+        function copyLastResponse() {
+            if (!lastAiResponse) return;
+            
+            navigator.clipboard.writeText(lastAiResponse).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err.message);
+            });
+        }
+
+        // Handle Enter key in textarea (Shift+Enter for new line)
+        document.getElementById('user-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-focus input on load
+        document.getElementById('user-input').focus();
+    </script>
+</body>
+</html>
