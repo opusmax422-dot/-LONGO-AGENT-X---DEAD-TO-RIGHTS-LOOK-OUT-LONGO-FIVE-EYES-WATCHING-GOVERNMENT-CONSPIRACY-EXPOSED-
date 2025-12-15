@@ -1,10 +1,10 @@
 ========================================================================
-    FORTRESS AI - QUICK START FOR YOUR PC
+    AGENT X - QUICK START FOR YOUR PC
 ========================================================================
 
 WSL2 IS ALREADY INSTALLED ✓
 
-Follow these 3 simple steps:
+Follow these 3 simple steps to launch Agent X web interface:
 
 ========================================================================
 STEP 1: OPEN UBUNTU (NOT POWERSHELL)
@@ -16,32 +16,48 @@ You'll see a green terminal that looks like:
     bob@LAPTOP:~$
 
 ========================================================================
-STEP 2: CLONE THE REPOSITORY
+STEP 2: DEPLOY AGENT X
 ========================================================================
 
-In the Ubuntu terminal, copy and paste this:
+In the Ubuntu terminal, copy and paste this entire block:
+
+curl -fsSL https://raw.githubusercontent.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-/main/DEPLOY_TO_LOCAL_PC.sh | bash
+
+OR manually:
 
 cd ~
 git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
 cd *LONGO*
+bash DEPLOY_TO_LOCAL_PC.sh
+
+This checks dependencies and sets everything up.
 
 ========================================================================
-STEP 3: RUN THE INSTALLER
+STEP 3: START AGENT X
 ========================================================================
 
-bash ./scripts/install_agent.sh
+bash start-agent-x.sh
 
-This will take 20-30 minutes and install everything automatically.
+Browser will open automatically to http://localhost:8080
 
 ========================================================================
-STEP 4: START THE VOICE AGENT
+USAGE: WEB INTERFACE
 ========================================================================
 
-After installation completes:
+✅ Type questions in the text box
+✅ Press Windows Key+H for speech input
+✅ Press Enter to send
+✅ AI responds in chat window
+
+========================================================================
+OPTIONAL: VOICE AGENT (TERMINAL-BASED)
+========================================================================
+
+For voice-only terminal interface:
 
 python3 ./scripts/voice_agent.py
 
-Now speak into your Blue Yeti microphone!
+(Requires Blue Yeti microphone)
 
 ========================================================================
 TROUBLESHOOTING
