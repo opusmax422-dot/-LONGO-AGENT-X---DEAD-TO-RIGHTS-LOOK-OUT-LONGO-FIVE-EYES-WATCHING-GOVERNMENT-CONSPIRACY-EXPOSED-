@@ -1,0 +1,66 @@
+========================================================================
+    FORTRESS AI - QUICK START FOR YOUR PC
+========================================================================
+
+WSL2 IS ALREADY INSTALLED ✓
+
+Follow these 3 simple steps:
+
+========================================================================
+STEP 1: OPEN UBUNTU (NOT POWERSHELL)
+========================================================================
+
+Press Windows key, type "Ubuntu", click the Ubuntu app.
+
+You'll see a green terminal that looks like:
+    bob@LAPTOP:~$
+
+========================================================================
+STEP 2: CLONE THE REPOSITORY
+========================================================================
+
+In the Ubuntu terminal, copy and paste this:
+
+cd ~
+git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
+cd *LONGO*
+
+========================================================================
+STEP 3: RUN THE INSTALLER
+========================================================================
+
+bash ./scripts/install_agent.sh
+
+This will take 20-30 minutes and install everything automatically.
+
+========================================================================
+STEP 4: START THE VOICE AGENT
+========================================================================
+
+After installation completes:
+
+python3 ./scripts/voice_agent.py
+
+Now speak into your Blue Yeti microphone!
+
+========================================================================
+TROUBLESHOOTING
+========================================================================
+
+If git is not installed in Ubuntu:
+    sudo apt update
+    sudo apt install -y git
+
+If you see "permission denied":
+    chmod +x ./scripts/*.sh
+
+========================================================================
+YOU'RE IN THE RIGHT PLACE WHEN YOU SEE:
+========================================================================
+
+bob@LAPTOP:~$              <-- This is Ubuntu (CORRECT)
+
+NOT this:
+PS C:\Users\bob>           <-- This is PowerShell (WRONG)
+
+========================================================================
