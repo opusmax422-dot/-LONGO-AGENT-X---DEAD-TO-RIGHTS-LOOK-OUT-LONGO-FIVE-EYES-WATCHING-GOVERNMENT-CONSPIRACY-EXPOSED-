@@ -15,10 +15,6 @@
                 <p class="subtitle">Fortress AI - Autonomous Legal Intelligence + RAG Search</p>
             </div>
             <div class="header-controls">
-                <button id="upload-btn" class="btn btn-secondary" onclick="document.getElementById('file-upload').click()">
-                    📁 Upload Document
-                </button>
-                <input type="file" id="file-upload" accept=".pdf,.txt,.md,.html,.mhtml,.doc,.docx" style="display:none" onchange="uploadDocument()">
                 <div class="status" id="status">
                     <span class="status-indicator" id="status-indicator">●</span>
                     <span id="status-text">Checking...</span>
@@ -28,6 +24,18 @@
 
         <!-- Chat Container -->
         <div class="chat-container" id="chat-container">
+            <!-- Drag and Drop Zone -->
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-zone-content">
+                    <span class="drop-icon">📎</span>
+                    <p class="drop-text">Drag and drop files here</p>
+                    <p class="drop-subtext">or click below to select files</p>
+                    <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">
+                        📁 Select Files
+                    </button>
+                </div>
+            </div>
+            
             <!-- Welcome message -->
             <div class="message ai-message">
                 <div class="message-content">
@@ -47,13 +55,25 @@
             </div>
         </div>
 
+        <!-- File Upload List -->
+        <div class="upload-list" id="upload-list" style="display: none;">
+            <h3>📎 Uploading Files</h3>
+            <div id="upload-items"></div>
+        </div>
+
         <!-- Input Area -->
         <div class="input-container">
-            <textarea 
-                id="user-input" 
-                placeholder="Type your question here, or press Windows Key+H to use speech input..."
-                rows="3"
-            ></textarea>
+            <div class="input-wrapper">
+                <textarea 
+                    id="user-input" 
+                    placeholder="Type your question here, or press Windows Key+H to use speech input..."
+                    rows="3"
+                ></textarea>
+                <button id="attach-btn" class="btn-attach" onclick="document.getElementById('file-input').click()" title="Attach files">
+                    📎
+                </button>
+            </div>
+            <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt,.md,.html,.mhtml,.jpg,.jpeg,.png,.zip" style="display:none" onchange="handleFileSelect(event)">
             <div class="input-controls">
                 <div class="left-controls">
                     <button id="clear-btn" class="btn btn-secondary" onclick="clearChat()">
@@ -79,13 +99,201 @@
         // Global state
         let isProcessing = false;
         let lastAiResponse = "";
+        let uploadQueue = [];
 
         // Check system status on load
         window.addEventListener('DOMContentLoaded', function() {
             checkStatus();
             // Check status every 30 seconds
             setInterval(checkStatus, 30000);
+            
+            // Setup drag and drop
+            setupDragAndDrop();
         });
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const chatContainer = document.getElementById('chat-container');
+            
+            // Prevent default drag behaviors on document
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            // Highlight drop zone when dragging over
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight(e) {
+                dropZone.classList.add('drop-zone-highlight');
+            }
+            
+            function unhighlight(e) {
+                dropZone.classList.remove('drop-zone-highlight');
+            }
+            
+            // Handle dropped files
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+        }
+
+        // Handle file selection from input
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            handleFiles(files);
+        }
+
+        // Handle multiple files
+        function handleFiles(files) {
+            const fileArray = Array.from(files);
+            
+            if (fileArray.length === 0) return;
+            
+            // Show upload list
+            document.getElementById('upload-list').style.display = 'block';
+            
+            // Upload each file
+            fileArray.forEach(file => {
+                uploadFile(file);
+            });
+        }
+
+        // Upload a single file
+        async function uploadFile(file) {
+            const uploadId = Date.now() + Math.random();
+            
+            // Create upload item UI
+            const uploadItems = document.getElementById('upload-items');
+            const uploadItem = document.createElement('div');
+            uploadItem.className = 'upload-item';
+            uploadItem.id = `upload-${uploadId}`;
+            uploadItem.innerHTML = `
+                <div class="upload-info">
+                    <span class="upload-icon">📄</span>
+                    <div class="upload-details">
+                        <div class="upload-filename">${file.name}</div>
+                        <div class="upload-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <span class="upload-status">⏳</span>
+                </div>
+                <div class="upload-progress">
+                    <div class="upload-progress-bar" id="progress-${uploadId}"></div>
+                </div>
+                <div class="upload-message" id="message-${uploadId}"></div>
+            `;
+            uploadItems.appendChild(uploadItem);
+            
+            // Validate file size
+            if (file.size > 50 * 1024 * 1024) {
+                updateUploadStatus(uploadId, 'error', `❌ File too large (${formatFileSize(file.size)}). Maximum: 50MB`);
+                return;
+            }
+            
+            // Validate file type
+            const validExtensions = ['pdf', 'docx', 'txt', 'md', 'html', 'mhtml', 'jpg', 'jpeg', 'png', 'zip'];
+            const fileName = file.name.toLowerCase();
+            const extension = fileName.split('.').pop();
+            
+            if (!validExtensions.includes(extension)) {
+                updateUploadStatus(uploadId, 'error', `❌ Invalid file type '.${extension}'`);
+                return;
+            }
+            
+            // Create FormData
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                // Simulate progress (since fetch doesn't support upload progress easily)
+                const progressBar = document.getElementById(`progress-${uploadId}`);
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += 10;
+                        progressBar.style.width = progress + '%';
+                    }
+                }, 100);
+                
+                // Upload file
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateUploadStatus(uploadId, 'success', `✅ ${data.message}`);
+                    // Add success message to chat
+                    addMessage(`📁 File uploaded: ${data.filename} (${data.size})\n${data.message}`, 'system');
+                    checkStatus(); // Update document count
+                } else {
+                    updateUploadStatus(uploadId, 'error', `❌ ${data.error}`);
+                }
+            } catch (error) {
+                updateUploadStatus(uploadId, 'error', `❌ Upload failed: ${error.message}`);
+            }
+        }
+
+        // Update upload status
+        function updateUploadStatus(uploadId, status, message) {
+            const uploadItem = document.getElementById(`upload-${uploadId}`);
+            if (!uploadItem) return;
+            
+            const statusIcon = uploadItem.querySelector('.upload-status');
+            const messageDiv = document.getElementById(`message-${uploadId}`);
+            
+            if (status === 'success') {
+                statusIcon.textContent = '✅';
+                uploadItem.classList.add('upload-success');
+            } else if (status === 'error') {
+                statusIcon.textContent = '❌';
+                uploadItem.classList.add('upload-error');
+            }
+            
+            messageDiv.textContent = message;
+            
+            // Auto-remove after 5 seconds if successful
+            if (status === 'success') {
+                setTimeout(() => {
+                    uploadItem.style.opacity = '0';
+                    setTimeout(() => {
+                        uploadItem.remove();
+                        // Hide upload list if empty
+                        const uploadItems = document.getElementById('upload-items');
+                        if (uploadItems.children.length === 0) {
+                            document.getElementById('upload-list').style.display = 'none';
+                        }
+                    }, 300);
+                }, 5000);
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
 
         // Check system status
         async function checkStatus() {
@@ -231,6 +439,16 @@
                 // Clear UI
                 const chatContainer = document.getElementById('chat-container');
                 chatContainer.innerHTML = `
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="drop-zone-content">
+                            <span class="drop-icon">📎</span>
+                            <p class="drop-text">Drag and drop files here</p>
+                            <p class="drop-subtext">or click below to select files</p>
+                            <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">
+                                📁 Select Files
+                            </button>
+                        </div>
+                    </div>
                     <div class="message ai-message">
                         <div class="message-content">
                             <strong>Conversation Cleared</strong><br>
@@ -238,6 +456,9 @@
                         </div>
                     </div>
                 `;
+                
+                // Re-setup drag and drop
+                setupDragAndDrop();
                 
                 lastAiResponse = "";
                 document.getElementById('copy-btn').disabled = true;
@@ -270,72 +491,6 @@
                 e.preventDefault();
                 sendMessage();
             }
-        });
-
-        // Upload document
-        async function uploadDocument() {
-            const fileInput = document.getElementById('file-upload');
-            const file = fileInput.files[0];
-            
-            if (!file) return;
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Show uploading message
-            const uploadingId = Date.now();
-            const chatContainer = document.getElementById('chat-container');
-            const uploadingDiv = document.createElement('div');
-            uploadingDiv.className = 'message system-message';
-            uploadingDiv.id = `uploading-${uploadingId}`;
-            uploadingDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="thinking-indicator">
-                        <div class="thinking-dot"></div>
-                        <div class="thinking-dot"></div>
-                        <div class="thinking-dot"></div>
-                    </div>
-                    <span>Uploading and indexing ${file.name}...</span>
-                </div>
-            `;
-            chatContainer.appendChild(uploadingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                // Remove uploading message
-                document.getElementById(`uploading-${uploadingId}`).remove();
-                
-                if (data.status === 'success') {
-                    addMessage(`✅ Document uploaded: ${data.filename}\n\nDocument has been indexed and is now searchable. Ask questions about its contents!`, 'system');
-                    checkStatus(); // Update status to show new document count
-                } else if (data.error) {
-                    addMessage(`❌ Upload failed: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                document.getElementById(`uploading-${uploadingId}`).remove();
-                addMessage(`❌ Upload error: ${error.message}`, 'error');
-            }
-            
-            // Reset file input
-            fileInput.value = '';
-        }
-        
-        // Add system message function
-        function addSystemMessage(text) {
-            const chatContainer = document.getElementById('chat-container');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system-message';
-            messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
         });
 
         // Auto-focus input on load
