@@ -12,11 +12,17 @@
         <div class="header">
             <div class="title">
                 <h1>🏰 AGENT X</h1>
-                <p class="subtitle">Fortress AI - Autonomous Legal Intelligence</p>
+                <p class="subtitle">Fortress AI - Autonomous Legal Intelligence + RAG Search</p>
             </div>
-            <div class="status" id="status">
-                <span class="status-indicator" id="status-indicator">●</span>
-                <span id="status-text">Checking...</span>
+            <div class="header-controls">
+                <button id="upload-btn" class="btn btn-secondary" onclick="document.getElementById('file-upload').click()">
+                    📁 Upload Document
+                </button>
+                <input type="file" id="file-upload" accept=".pdf,.txt,.md,.html,.mhtml,.doc,.docx" style="display:none" onchange="uploadDocument()">
+                <div class="status" id="status">
+                    <span class="status-indicator" id="status-indicator">●</span>
+                    <span id="status-text">Checking...</span>
+                </div>
             </div>
         </div>
 
@@ -25,16 +31,18 @@
             <!-- Welcome message -->
             <div class="message ai-message">
                 <div class="message-content">
-                    <strong>Agent X Ready</strong><br>
-                    I'm your autonomous legal AI assistant. I can help with:
+                    <strong>Agent X Ready 🔍</strong><br>
+                    I'm your autonomous legal AI assistant with RAG document search. I can help with:
                     <ul>
                         <li>Legal research and analysis</li>
                         <li>Civil rights law questions</li>
                         <li>Document review and drafting</li>
                         <li>Case strategy discussion</li>
+                        <li><strong>Search through your evidence files</strong> 📚</li>
                     </ul>
                     <em>100% offline and private. Your conversations stay on your PC.</em><br><br>
-                    <strong>Windows Speech Input:</strong> Press <kbd>Windows Key + H</kbd> to dictate your question.
+                    <strong>Windows Speech Input:</strong> Press <kbd>Windows Key + H</kbd> to dictate your question.<br>
+                    <strong>Document Upload:</strong> Click "Upload Document" to add evidence files for AI-powered search.
                 </div>
             </div>
         </div>
@@ -262,6 +270,72 @@
                 e.preventDefault();
                 sendMessage();
             }
+        });
+
+        // Upload document
+        async function uploadDocument() {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Show uploading message
+            const uploadingId = Date.now();
+            const chatContainer = document.getElementById('chat-container');
+            const uploadingDiv = document.createElement('div');
+            uploadingDiv.className = 'message system-message';
+            uploadingDiv.id = `uploading-${uploadingId}`;
+            uploadingDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="thinking-indicator">
+                        <div class="thinking-dot"></div>
+                        <div class="thinking-dot"></div>
+                        <div class="thinking-dot"></div>
+                    </div>
+                    <span>Uploading and indexing ${file.name}...</span>
+                </div>
+            `;
+            chatContainer.appendChild(uploadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Remove uploading message
+                document.getElementById(`uploading-${uploadingId}`).remove();
+                
+                if (data.status === 'success') {
+                    addMessage(`✅ Document uploaded: ${data.filename}\n\nDocument has been indexed and is now searchable. Ask questions about its contents!`, 'system');
+                    checkStatus(); // Update status to show new document count
+                } else if (data.error) {
+                    addMessage(`❌ Upload failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                document.getElementById(`uploading-${uploadingId}`).remove();
+                addMessage(`❌ Upload error: ${error.message}`, 'error');
+            }
+            
+            // Reset file input
+            fileInput.value = '';
+        }
+        
+        // Add system message function
+        function addSystemMessage(text) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
         });
 
         // Auto-focus input on load

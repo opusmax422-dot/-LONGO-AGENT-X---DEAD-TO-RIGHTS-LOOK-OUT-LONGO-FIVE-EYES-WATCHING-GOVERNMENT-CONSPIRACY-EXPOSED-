@@ -65,6 +65,12 @@ body {
     font-size: 0.9rem;
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .status {
     display: flex;
     align-items: center;
@@ -142,6 +148,15 @@ body {
     border-radius: 12px;
     max-width: 80%;
     line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.system-message .message-content {
+    background: var(--bg-medium);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
+    max-width: 90%;
+}
     word-wrap: break-word;
 }
 
