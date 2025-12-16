@@ -161,7 +161,8 @@ download_tradingview_library() {
     
     # Check if library already exists and is not just a placeholder
     if [ -f "$lib_file" ]; then
-        local file_size=$(stat -f%z "$lib_file" 2>/dev/null || stat -c%s "$lib_file" 2>/dev/null)
+        # Use portable method to check file size
+        local file_size=$(wc -c < "$lib_file" 2>/dev/null || echo "0")
         if [ "$file_size" -gt 10000 ]; then
             print_status "TradingView library already exists (${file_size} bytes)"
             return 0

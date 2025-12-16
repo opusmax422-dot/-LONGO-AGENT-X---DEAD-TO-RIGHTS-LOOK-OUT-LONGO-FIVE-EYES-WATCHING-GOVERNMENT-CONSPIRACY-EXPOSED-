@@ -12,6 +12,9 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $SCRIPT_VERSION = "1.0.0"
+
+# Repository configuration
+# Note: The repository name is intentionally long as set by the repository owner
 $REPO_URL = "https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git"
 $REPO_DIR_NAME = "agent-x-fortress"
 $WSL_INSTALL_PATH = "~/$REPO_DIR_NAME"

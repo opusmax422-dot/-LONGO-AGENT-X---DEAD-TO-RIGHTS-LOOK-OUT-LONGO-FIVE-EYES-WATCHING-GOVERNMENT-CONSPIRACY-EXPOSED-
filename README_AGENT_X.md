@@ -168,6 +168,8 @@ This will:
 
 #### Quick Install (Bash One-Liner)
 
+**Note**: The repository URL is intentionally descriptive. Copy the entire command carefully.
+
 ```bash
 git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git agent-x-fortress && cd agent-x-fortress && ./install_agent_x.sh
 ```
