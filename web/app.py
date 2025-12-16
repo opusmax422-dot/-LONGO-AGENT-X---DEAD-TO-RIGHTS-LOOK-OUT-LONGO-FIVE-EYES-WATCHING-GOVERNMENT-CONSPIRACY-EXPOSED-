@@ -14,6 +14,13 @@ from datetime import datetime
 from pathlib import Path
 from werkzeug.utils import secure_filename
 
+# Optional imports for enhanced status
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+
 app = Flask(__name__)
 
 # Configuration
@@ -249,26 +256,83 @@ def api_clear():
 
 @app.route("/api/status", methods=["GET"])
 def api_status():
-    """Check system status"""
+    """Comprehensive system status check"""
+    import platform
+    
     ollama_running = check_ollama_running()
     ollama_exists = OLLAMA_BIN.exists()
     
     # Check RAG status
     rag_available = False
     document_count = 0
+    vector_db_size = 0
     if VECTOR_DB_DIR.exists():
         rag_available = (VECTOR_DB_DIR / "index.faiss").exists()
-        if EVIDENCE_DIR.exists():
-            document_count = len(list(EVIDENCE_DIR.glob("**/*.*")))
+        if rag_available:
+            try:
+                vector_db_size = sum(f.stat().st_size for f in VECTOR_DB_DIR.glob("*") if f.is_file())
+            except:
+                pass
+    
+    if EVIDENCE_DIR.exists():
+        try:
+            document_count = len([f for f in EVIDENCE_DIR.glob("**/*.*") if f.is_file()])
+        except:
+            pass
+    
+    # Check Python dependencies
+    dependencies = {}
+    for module in ["flask", "langchain", "faiss", "sentence_transformers"]:
+        try:
+            __import__(module)
+            dependencies[module] = "installed"
+        except ImportError:
+            dependencies[module] = "missing"
+    
+    # System info
+    system_info = {
+        "python_version": platform.python_version(),
+        "platform": platform.platform()
+    }
+    
+    # Add memory info if psutil is available
+    if PSUTIL_AVAILABLE:
+        try:
+            system_info["memory_total_gb"] = round(psutil.virtual_memory().total / (1024**3), 2)
+            system_info["memory_available_gb"] = round(psutil.virtual_memory().available / (1024**3), 2)
+            system_info["cpu_count"] = psutil.cpu_count()
+        except:
+            pass
+    
+    # Overall health
+    health_checks = {
+        "ollama_running": ollama_running,
+        "rag_available": rag_available,
+        "dependencies_ok": all(v == "installed" for v in dependencies.values())
+    }
+    overall_status = "healthy" if all(health_checks.values()) else "degraded"
     
     return jsonify({
-        "ollama_running": ollama_running,
-        "ollama_exists": ollama_exists,
-        "ollama_path": str(OLLAMA_BIN),
-        "model": MODEL_NAME,
-        "conversation_count": len(current_conversation) // 2,
-        "rag_available": rag_available,
-        "document_count": document_count
+        "status": overall_status,
+        "timestamp": datetime.now().isoformat(),
+        "ollama": {
+            "running": ollama_running,
+            "exists": ollama_exists,
+            "path": str(OLLAMA_BIN),
+            "model": MODEL_NAME
+        },
+        "rag": {
+            "available": rag_available,
+            "document_count": document_count,
+            "vector_db_size_mb": round(vector_db_size / (1024**2), 2) if vector_db_size > 0 else 0
+        },
+        "conversation": {
+            "message_count": len(current_conversation),
+            "turn_count": len(current_conversation) // 2
+        },
+        "dependencies": dependencies,
+        "system": system_info,
+        "health_checks": health_checks
     })
 
 
