@@ -21,13 +21,16 @@ FORTRESS_DIR = Path.home() / "fortress-ai"
 OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
 CONVERSATION_DIR = FORTRESS_DIR / "logs" / "conversations"
 EVIDENCE_DIR = FORTRESS_DIR / "evidence"
+UPLOAD_DIR = EVIDENCE_DIR / "uploads"
 VECTOR_DB_DIR = FORTRESS_DIR / "vector_db"
 MODEL_NAME = "qwen2.5:7b-instruct-q4_K_M"
-ALLOWED_EXTENSIONS = {'pdf', 'txt', 'md', 'html', 'mhtml', 'doc', 'docx'}
+ALLOWED_EXTENSIONS = {'pdf', 'txt', 'md', 'html', 'mhtml', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip'}
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB in bytes
 
 # Ensure directories exist
 CONVERSATION_DIR.mkdir(parents=True, exist_ok=True)
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Current conversation storage
 current_conversation = []
@@ -281,36 +284,76 @@ def api_history():
 def api_upload():
     """Handle document upload and ingestion"""
     if 'file' not in request.files:
-        return jsonify({"error": "No file provided"}), 400
+        return jsonify({"success": False, "error": "No file provided"}), 400
     
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
+        return jsonify({"success": False, "error": "No file selected"}), 400
     
     # Check file extension
     if '.' not in file.filename:
-        return jsonify({"error": "Invalid file type"}), 400
+        return jsonify({"success": False, "error": "Invalid file type - no extension found"}), 400
     
     ext = file.filename.rsplit('.', 1)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return jsonify({"error": f"File type not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"}), 400
+        return jsonify({
+            "success": False,
+            "error": f"File type '.{ext}' not allowed. Allowed types: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+        }), 400
     
     try:
-        # Save file
+        # Check file size
+        file.seek(0, 2)  # Seek to end
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > MAX_FILE_SIZE:
+            size_mb = file_size / (1024 * 1024)
+            return jsonify({
+                "success": False,
+                "error": f"File too large ({size_mb:.1f}MB). Maximum size: 50MB"
+            }), 400
+        
+        # Save file to uploads directory
         filename = secure_filename(file.filename)
-        filepath = EVIDENCE_DIR / filename
+        filepath = UPLOAD_DIR / filename
+        
+        # Check if file already exists
+        if filepath.exists():
+            base, extension = filename.rsplit('.', 1)
+            counter = 1
+            while filepath.exists():
+                filename = f"{base}_{counter}.{extension}"
+                filepath = UPLOAD_DIR / filename
+                counter += 1
+        
         file.save(str(filepath))
         
-        # Trigger re-ingestion (asynchronous would be better, but this is simple)
-        ingest_documents()
+        # Format file size for response
+        if file_size < 1024:
+            size_str = f"{file_size} B"
+        elif file_size < 1024 * 1024:
+            size_str = f"{file_size / 1024:.1f} KB"
+        else:
+            size_str = f"{file_size / (1024 * 1024):.1f} MB"
+        
+        # Trigger re-ingestion
+        ingestion_success = ingest_documents()
+        
+        message = "✅ File uploaded and indexed for AI search" if ingestion_success else "✅ File uploaded (indexing may have failed)"
         
         return jsonify({
-            "status": "success",
+            "success": True,
             "filename": filename,
-            "message": "Document uploaded and indexed successfully"
+            "size": size_str,
+            "message": message
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Upload error: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Upload failed: {str(e)}"
+        }), 500
 
 
 @app.route("/api/documents", methods=["GET"])
@@ -343,34 +386,39 @@ def ingest_documents():
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         
         docs = []
-        for filepath in EVIDENCE_DIR.glob("**/*.*"):
-            if not filepath.is_file():
+        # Scan both evidence root and uploads subdirectory
+        for search_dir in [EVIDENCE_DIR, UPLOAD_DIR]:
+            if not search_dir.exists():
                 continue
-            
-            try:
-                text = None
-                ext = filepath.suffix.lower()
+            for filepath in search_dir.glob("**/*.*"):
+                if not filepath.is_file():
+                    continue
                 
-                if ext == '.pdf':
-                    pdf = fitz.open(str(filepath))
-                    text = '\n'.join(page.get_text() for page in pdf)
-                    pdf.close()
-                elif ext in ['.txt', '.md']:
-                    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                        text = f.read()
-                elif ext in ['.html', '.mhtml']:
-                    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                        text = f.read()
-                
-                if text and text.strip():
-                    chunks = splitter.split_text(text)
-                    for chunk in chunks:
-                        docs.append({
-                            "content": chunk,
-                            "metadata": {"source": filepath.name, "path": str(filepath)}
-                        })
-            except Exception as e:
-                print(f"Error processing {filepath.name}: {e}")
+                try:
+                    text = None
+                    ext = filepath.suffix.lower()
+                    
+                    if ext == '.pdf':
+                        pdf = fitz.open(str(filepath))
+                        text = '\n'.join(page.get_text() for page in pdf)
+                        pdf.close()
+                    elif ext in ['.txt', '.md']:
+                        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                            text = f.read()
+                    elif ext in ['.html', '.mhtml']:
+                        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                            text = f.read()
+                    # Skip image and zip files for now (no text extraction)
+                    
+                    if text and text.strip():
+                        chunks = splitter.split_text(text)
+                        for chunk in chunks:
+                            docs.append({
+                                "content": chunk,
+                                "metadata": {"source": filepath.name, "path": str(filepath)}
+                            })
+                except Exception as e:
+                    print(f"Error processing {filepath.name}: {e}")
         
         if docs:
             texts = [d["content"] for d in docs]
