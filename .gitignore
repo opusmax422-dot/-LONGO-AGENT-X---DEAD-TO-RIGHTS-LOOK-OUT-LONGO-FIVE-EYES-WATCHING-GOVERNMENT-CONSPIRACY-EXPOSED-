@@ -46,7 +46,18 @@ Thumbs.db
 # Logs
 *.log
 nohup.out
+logs/*.log
 
 # Temporary files
 /tmp/
 *.tmp
+
+# Agent X Fortress specific
+output/*
+!output/.gitkeep
+config/*.json
+!config/.gitkeep
+data/evidence/*
+!data/evidence/.gitkeep
+data/social/*
+!data/social/.gitkeep
