@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent X - Evidence Timeline Chart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00d9ff;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #00d9ff;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+        
+        .control-group input,
+        .control-group select,
+        .control-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .control-group textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            height: 600px;
+        }
+        
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+        
+        .info-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00d9ff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 10px;
+            color: #00d9ff;
+        }
+        
+        .info-box code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 AGENT X FORTRESS - Evidence Timeline Chart</h1>
+            <p class="subtitle">Professional OHLC Data Visualization | Ready for Francesco's Algorithm</p>
+        </header>
+        
+        <div class="info-box">
+            <h3>📊 Chart Data Format (OHLC)</h3>
+            <p>Enter data in JSON format: <code>[{"time": "2025-01-01", "open": 100, "high": 105, "low": 99, "close": 103, "volume": 10000}, ...]</code></p>
+            <p><strong>Note:</strong> This chart loads from LOCAL files (no CDN dependencies) for complete offline compatibility.</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="chartTitle">Chart Title:</label>
+                <input type="text" id="chartTitle" value="Evidence Timeline Analysis" placeholder="Enter chart title">
+            </div>
+            
+            <div class="control-group">
+                <label for="dataInput">OHLC Data (JSON format):</label>
+                <textarea id="dataInput" placeholder='[{"time": "2025-01-01", "open": 100, "high": 105, "low": 99, "close": 103}, ...]'></textarea>
+            </div>
+            
+            <div class="control-group">
+                <label for="timeframe">Timeframe:</label>
+                <select id="timeframe">
+                    <option value="D">Daily</option>
+                    <option value="W">Weekly</option>
+                    <option value="M">Monthly</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="loadChart()">📈 Load Chart</button>
+                <button onclick="loadSampleData()">📊 Load Sample Data</button>
+                <button onclick="exportChart()">💾 Export Chart</button>
+                <button onclick="clearChart()">🗑️ Clear Chart</button>
+            </div>
+            
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="chart-container">
+            <div id="chart"></div>
+        </div>
+    </div>
+    
+    <!-- LOCAL TradingView Library - NO CDN DEPENDENCY -->
+    <script src="lightweight-charts.standalone.production.js"></script>
+    
+    <script>
+        let chart = null;
+        let candlestickSeries = null;
+        let volumeSeries = null;
+        
+        // Initialize chart on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeChart();
+        });
+        
+        function initializeChart() {
+            try {
+                const chartContainer = document.getElementById('chart');
+                
+                // Check if library is loaded
+                if (typeof LightweightCharts === 'undefined') {
+                    showStatus('⚠️ TradingView library not loaded. Please run install_agent_x.sh first.', 'error');
+                    return;
+                }
+                
+                // Create chart
+                chart = LightweightCharts.createChart(chartContainer, {
+                    width: chartContainer.clientWidth,
+                    height: chartContainer.clientHeight,
+                    layout: {
+                        background: { color: '#16213e' },
+                        textColor: '#d1d4dc',
+                    },
+                    grid: {
+                        vertLines: { color: 'rgba(42, 46, 57, 0.6)' },
+                        horzLines: { color: 'rgba(42, 46, 57, 0.6)' },
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                    },
+                    rightPriceScale: {
+                        borderColor: 'rgba(197, 203, 206, 0.4)',
+                    },
+                    timeScale: {
+                        borderColor: 'rgba(197, 203, 206, 0.4)',
+                        timeVisible: true,
+                        secondsVisible: false,
+                    },
+                });
+                
+                // Add candlestick series
+                candlestickSeries = chart.addCandlestickSeries({
+                    upColor: '#00d9ff',
+                    downColor: '#ff4757',
+                    borderUpColor: '#00d9ff',
+                    borderDownColor: '#ff4757',
+                    wickUpColor: '#00d9ff',
+                    wickDownColor: '#ff4757',
+                });
+                
+                // Add volume series
+                volumeSeries = chart.addHistogramSeries({
+                    color: 'rgba(0, 217, 255, 0.3)',
+                    priceFormat: {
+                        type: 'volume',
+                    },
+                    priceScaleId: '',
+                    scaleMargins: {
+                        top: 0.8,
+                        bottom: 0,
+                    },
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    if (chart) {
+                        chart.applyOptions({
+                            width: chartContainer.clientWidth,
+                            height: chartContainer.clientHeight,
+                        });
+                    }
+                });
+                
+                showStatus('✅ Chart initialized successfully', 'success');
+            } catch (error) {
+                showStatus('❌ Error initializing chart: ' + error.message, 'error');
+                console.error('Chart initialization error:', error);
+            }
+        }
+        
+        function loadChart() {
+            try {
+                const dataInput = document.getElementById('dataInput').value.trim();
+                
+                if (!dataInput) {
+                    showStatus('⚠️ Please enter OHLC data', 'error');
+                    return;
+                }
+                
+                // Parse and validate data
+                const data = JSON.parse(dataInput);
+                
+                if (!Array.isArray(data) || data.length === 0) {
+                    showStatus('❌ Data must be a non-empty array', 'error');
+                    return;
+                }
+                
+                // Validate data format
+                const validatedData = validateOHLCData(data);
+                
+                if (!validatedData) {
+                    showStatus('❌ Invalid OHLC data format', 'error');
+                    return;
+                }
+                
+                // Load data into chart
+                candlestickSeries.setData(validatedData.ohlc);
+                
+                if (validatedData.volume.length > 0) {
+                    volumeSeries.setData(validatedData.volume);
+                }
+                
+                // Auto-scale
+                chart.timeScale().fitContent();
+                
+                showStatus('✅ Chart loaded successfully with ' + data.length + ' data points', 'success');
+            } catch (error) {
+                showStatus('❌ Error loading chart: ' + error.message, 'error');
+                console.error('Chart loading error:', error);
+            }
+        }
+        
+        function validateOHLCData(data) {
+            try {
+                const ohlc = [];
+                const volume = [];
+                
+                for (let i = 0; i < data.length; i++) {
+                    const item = data[i];
+                    
+                    // Validate required fields
+                    if (!item.time || typeof item.open !== 'number' || 
+                        typeof item.high !== 'number' || typeof item.low !== 'number' || 
+                        typeof item.close !== 'number') {
+                        console.error('Invalid data at index', i, item);
+                        return null;
+                    }
+                    
+                    // Add to OHLC
+                    ohlc.push({
+                        time: item.time,
+                        open: item.open,
+                        high: item.high,
+                        low: item.low,
+                        close: item.close,
+                    });
+                    
+                    // Add volume if present
+                    if (typeof item.volume === 'number') {
+                        volume.push({
+                            time: item.time,
+                            value: item.volume,
+                            color: item.close >= item.open ? 'rgba(0, 217, 255, 0.3)' : 'rgba(255, 71, 87, 0.3)',
+                        });
+                    }
+                }
+                
+                return { ohlc, volume };
+            } catch (error) {
+                console.error('Validation error:', error);
+                return null;
+            }
+        }
+        
+        function loadSampleData() {
+            const sampleData = [
+                {"time": "2024-01-01", "open": 100, "high": 110, "low": 95, "close": 108, "volume": 50000},
+                {"time": "2024-02-01", "open": 108, "high": 115, "low": 105, "close": 112, "volume": 60000},
+                {"time": "2024-03-01", "open": 112, "high": 120, "low": 110, "close": 118, "volume": 75000},
+                {"time": "2024-04-01", "open": 118, "high": 125, "low": 115, "close": 122, "volume": 80000},
+                {"time": "2024-05-01", "open": 122, "high": 130, "low": 120, "close": 128, "volume": 90000},
+                {"time": "2024-06-01", "open": 128, "high": 135, "low": 125, "close": 132, "volume": 100000},
+                {"time": "2024-07-01", "open": 132, "high": 138, "low": 128, "close": 135, "volume": 95000},
+                {"time": "2024-08-01", "open": 135, "high": 142, "low": 133, "close": 140, "volume": 110000},
+                {"time": "2024-09-01", "open": 140, "high": 145, "low": 138, "close": 143, "volume": 105000},
+                {"time": "2024-10-01", "open": 143, "high": 150, "low": 140, "close": 148, "volume": 120000},
+                {"time": "2024-11-01", "open": 148, "high": 155, "low": 145, "close": 152, "volume": 130000},
+                {"time": "2024-12-01", "open": 152, "high": 160, "low": 150, "close": 158, "volume": 140000}
+            ];
+            
+            document.getElementById('dataInput').value = JSON.stringify(sampleData, null, 2);
+            showStatus('✅ Sample data loaded. Click "Load Chart" to visualize.', 'success');
+        }
+        
+        function exportChart() {
+            try {
+                const dataInput = document.getElementById('dataInput').value.trim();
+                
+                if (!dataInput) {
+                    showStatus('⚠️ No data to export', 'error');
+                    return;
+                }
+                
+                // Create download
+                const blob = new Blob([dataInput], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'chart_data_' + new Date().toISOString().split('T')[0] + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('✅ Chart data exported successfully', 'success');
+            } catch (error) {
+                showStatus('❌ Error exporting chart: ' + error.message, 'error');
+            }
+        }
+        
+        function clearChart() {
+            if (candlestickSeries && volumeSeries) {
+                candlestickSeries.setData([]);
+                volumeSeries.setData([]);
+                document.getElementById('dataInput').value = '';
+                showStatus('✅ Chart cleared', 'success');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Francesco's Algorithm Insertion Interface
+        function insertFrancescoAlgorithm(data) {
+            /**
+             * Interface for Francesco's proprietary trading algorithm
+             * 
+             * This function serves as the insertion point for custom trading algorithms.
+             * Data is validated and then passed to the chart visualization system.
+             * 
+             * @param {Array} data - OHLC data array with format:
+             *   [{"time": "2025-01-01", "open": 100, "high": 105, "low": 99, "close": 103, "volume": 10000}, ...]
+             * 
+             * @returns {Object} - Status object with success boolean and message
+             */
+            try {
+                // Validate input
+                if (!Array.isArray(data) || data.length === 0) {
+                    return {
+                        success: false,
+                        message: 'Invalid data: Expected non-empty array'
+                    };
+                }
+                
+                // Validate data format
+                const validatedData = validateOHLCData(data);
+                if (!validatedData) {
+                    return {
+                        success: false,
+                        message: 'Invalid OHLC data format'
+                    };
+                }
+                
+                // Load into chart
+                candlestickSeries.setData(validatedData.ohlc);
+                if (validatedData.volume.length > 0) {
+                    volumeSeries.setData(validatedData.volume);
+                }
+                
+                // Auto-scale
+                chart.timeScale().fitContent();
+                
+                return {
+                    success: true,
+                    message: 'Algorithm data loaded successfully: ' + data.length + ' points'
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    message: 'Error: ' + error.message
+                };
+            }
+        }
+    </script>
+</body>
+</html>
