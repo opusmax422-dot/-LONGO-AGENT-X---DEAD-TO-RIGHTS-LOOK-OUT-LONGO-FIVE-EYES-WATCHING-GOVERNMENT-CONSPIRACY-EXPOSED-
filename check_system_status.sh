@@ -288,15 +288,16 @@ fi
 print_header "9. FUNCTIONAL TESTS"
 
 # Test Python imports
-if python3 -c "
+if python3 <<EOF 2>&1 | grep -q "SUCCESS"
 import sys
-sys.path.insert(0, '$REPO_DIR/web')
+sys.path.insert(0, "$REPO_DIR/web")
 try:
     import app
     print('SUCCESS')
 except Exception as e:
     print(f'ERROR: {e}')
-" 2>&1 | grep -q "SUCCESS"; then
+EOF
+then
     check_status "Flask App Import" "pass" "app.py loads successfully"
 else
     check_status "Flask App Import" "warn" "app.py may have import issues"

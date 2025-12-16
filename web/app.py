@@ -271,13 +271,13 @@ def api_status():
         if rag_available:
             try:
                 vector_db_size = sum(f.stat().st_size for f in VECTOR_DB_DIR.glob("*") if f.is_file())
-            except:
+            except (OSError, PermissionError):
                 pass
     
     if EVIDENCE_DIR.exists():
         try:
             document_count = len([f for f in EVIDENCE_DIR.glob("**/*.*") if f.is_file()])
-        except:
+        except (OSError, PermissionError):
             pass
     
     # Check Python dependencies
@@ -301,7 +301,7 @@ def api_status():
             system_info["memory_total_gb"] = round(psutil.virtual_memory().total / (1024**3), 2)
             system_info["memory_available_gb"] = round(psutil.virtual_memory().available / (1024**3), 2)
             system_info["cpu_count"] = psutil.cpu_count()
-        except:
+        except (AttributeError, RuntimeError):
             pass
     
     # Overall health
