@@ -10,7 +10,8 @@
 
 ```bash
 # First, navigate to the repository directory
-cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+# NOTE: Use ./ before the directory name since it starts with a hyphen
+cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 
 # Then run the launcher
 bash LAUNCH_WEB_INTERFACE.sh

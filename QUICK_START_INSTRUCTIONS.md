@@ -1,8 +1,22 @@
 # 🚀 QUICK START - Agent X Web Interface
 
+## ⚠️ IMPORTANT: Directory Name Starts with Hyphen!
+
+The repository name starts with a hyphen (`-`), which causes bash to interpret it as a command option. You **MUST** use `./` before the directory name:
+
+```bash
+# ✅ CORRECT - Use ./ prefix
+cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+
+# ❌ WRONG - Will give "invalid option" error
+cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+```
+
+---
+
 ## The Problem You're Experiencing
 
-If you're seeing **"No such file or directory"** error, it's likely because:
+If you're seeing **"No such file or directory"** or **"invalid option"** error, it's likely because:
 
 1. **You're not in the correct directory** when running the script
 2. **The repository wasn't cloned properly**
@@ -20,9 +34,9 @@ First, you MUST be in the repository root directory:
 cd /path/to/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 ```
 
-Or if you just cloned it:
+Or if you just cloned it (NOTE: Use ./ prefix since directory name starts with a hyphen):
 ```bash
-cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 ```
 
 ### Step 2: Verify You're in the Right Place
@@ -54,6 +68,10 @@ bash LAUNCH_WEB_INTERFACE.sh
 
 **DON'T DO THIS:**
 ```bash
+# ❌ Forgetting ./ prefix (gives "invalid option" error)
+cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+# ERROR: -bash: cd: -O: invalid option
+
 # ❌ Running from wrong directory
 cd ~
 bash LAUNCH_WEB_INTERFACE.sh  # ERROR: No such file
@@ -100,7 +118,7 @@ LAUNCH_WEB_INTERFACE.sh  # May fail depending on PATH
 2. If missing, re-clone the repository:
    ```bash
    git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
-   cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+   cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
    bash LAUNCH_WEB_INTERFACE.sh
    ```
 
@@ -133,8 +151,8 @@ Here's the complete sequence from start to finish:
 # 1. Clone the repository (if you haven't already)
 git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
 
-# 2. Navigate into the repository
-cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+# 2. Navigate into the repository (use ./ prefix since name starts with hyphen)
+cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 
 # 3. Verify you're in the right place
 ls LAUNCH_WEB_INTERFACE.sh
