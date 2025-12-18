@@ -86,9 +86,11 @@ if command -v python3 &> /dev/null; then
     print_success "Python $PYTHON_VERSION found"
     
     # Check if Python version is 3.8 or higher
-    PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
-    PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d. -f2)
-    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
+    if [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+        print_success "Python version is compatible (3.8+)"
+    elif [ "$PYTHON_MAJOR" -gt 3 ]; then
         print_success "Python version is compatible (3.8+)"
     else
         print_error "Python 3.8 or higher required. Found: $PYTHON_VERSION"
@@ -212,7 +214,8 @@ for i in "${!REQUIRED_PACKAGES[@]}"; do
     IMPORT_NAME="${REQUIRED_PACKAGES[$i]}"
     PACKAGE_NAME="${PACKAGE_NAMES[$i]}"
     
-    if ! python3 -c "import $IMPORT_NAME" 2>/dev/null; then
+    # Use a safe way to check imports - pass as string to Python
+    if ! python3 -c "import sys; import_name = sys.argv[1]; __import__(import_name)" "$IMPORT_NAME" 2>/dev/null; then
         MISSING_DEPS+=("$PACKAGE_NAME")
     fi
 done
@@ -338,24 +341,33 @@ echo ""
 print_step "Opening browser..."
 sleep 1
 
+# Validate PORT is a number
+if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
+    print_error "Invalid port number: $PORT"
+    exit 1
+fi
+
+# Build safe URL
+BROWSER_URL="http://localhost:${PORT}"
+
 if [ "$IS_WSL" = true ] && command -v powershell.exe &> /dev/null; then
     # WSL - use Windows browser
-    powershell.exe -Command "Start-Process 'http://localhost:$PORT'" 2>/dev/null &
+    powershell.exe -Command "Start-Process '${BROWSER_URL}'" 2>/dev/null &
     print_success "Browser opened (Windows)"
 elif command -v xdg-open &> /dev/null; then
     # Linux with X server
-    xdg-open "http://localhost:$PORT" 2>/dev/null &
+    xdg-open "${BROWSER_URL}" 2>/dev/null &
     print_success "Browser opened (Linux)"
 elif command -v firefox &> /dev/null; then
-    firefox "http://localhost:$PORT" 2>/dev/null &
+    firefox "${BROWSER_URL}" 2>/dev/null &
     print_success "Browser opened (Firefox)"
 elif command -v chromium &> /dev/null; then
-    chromium "http://localhost:$PORT" 2>/dev/null &
+    chromium "${BROWSER_URL}" 2>/dev/null &
     print_success "Browser opened (Chromium)"
 else
     print_warning "Could not auto-open browser"
     echo ""
-    echo "   Please open manually: ${MAGENTA}http://localhost:$PORT${NC}"
+    echo "   Please open manually: ${MAGENTA}${BROWSER_URL}${NC}"
 fi
 
 sleep 2

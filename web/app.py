@@ -21,12 +21,15 @@ FORTRESS_DIR = Path.home() / "fortress-ai"
 # Check for Ollama binary - prefer environment variable, then system PATH, then local install
 if os.environ.get("OLLAMA_BIN"):
     OLLAMA_BIN = Path(os.environ.get("OLLAMA_BIN"))
-elif os.system("which ollama > /dev/null 2>&1") == 0:
-    import subprocess
-    result = subprocess.run(["which", "ollama"], capture_output=True, text=True)
-    OLLAMA_BIN = Path(result.stdout.strip())
 else:
-    OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
+    try:
+        result = subprocess.run(["which", "ollama"], capture_output=True, text=True, timeout=2)
+        if result.returncode == 0 and result.stdout.strip():
+            OLLAMA_BIN = Path(result.stdout.strip())
+        else:
+            OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
+    except Exception:
+        OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
 
 CONVERSATION_DIR = FORTRESS_DIR / "logs" / "conversations"
 EVIDENCE_DIR = FORTRESS_DIR / "evidence"
