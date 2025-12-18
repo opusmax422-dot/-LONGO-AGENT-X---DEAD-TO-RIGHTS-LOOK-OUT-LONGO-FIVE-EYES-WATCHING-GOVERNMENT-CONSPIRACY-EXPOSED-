@@ -1,0 +1,23 @@
+# AGENT X - Python Dependencies
+# Install with: pip3 install -r requirements.txt
+
+# Web Framework
+flask==3.0.0
+werkzeug==3.0.1
+
+# AI & LangChain
+langchain==0.1.0
+langchain-community==0.0.10
+
+# Vector Database & Embeddings
+faiss-cpu==1.7.4
+sentence-transformers==2.2.2
+
+# Document Processing
+pymupdf==1.23.8
+python-docx==1.1.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Utilities
+requests==2.31.0

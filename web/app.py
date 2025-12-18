@@ -18,7 +18,19 @@ app = Flask(__name__)
 
 # Configuration
 FORTRESS_DIR = Path.home() / "fortress-ai"
-OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
+# Check for Ollama binary - prefer environment variable, then system PATH, then local install
+if os.environ.get("OLLAMA_BIN"):
+    OLLAMA_BIN = Path(os.environ.get("OLLAMA_BIN"))
+else:
+    try:
+        result = subprocess.run(["which", "ollama"], capture_output=True, text=True, timeout=2)
+        if result.returncode == 0 and result.stdout.strip():
+            OLLAMA_BIN = Path(result.stdout.strip())
+        else:
+            OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
+    except Exception:
+        OLLAMA_BIN = FORTRESS_DIR / "bin" / "ollama"
+
 CONVERSATION_DIR = FORTRESS_DIR / "logs" / "conversations"
 EVIDENCE_DIR = FORTRESS_DIR / "evidence"
 UPLOAD_DIR = EVIDENCE_DIR / "uploads"
@@ -69,15 +81,26 @@ def init_rag_system():
 
 
 def check_ollama_running():
-    """Check if Ollama server is running"""
+    """Check if Ollama server is running and responding"""
     try:
+        # First check if process is running
         result = subprocess.run(
             ["pgrep", "-f", "ollama"],
             capture_output=True,
             text=True,
             timeout=2
         )
-        return result.returncode == 0
+        if result.returncode != 0:
+            return False
+        
+        # Also verify API is responding
+        try:
+            import requests
+            response = requests.get("http://127.0.0.1:11434/api/tags", timeout=2)
+            return response.status_code == 200
+        except:
+            # Process is running but API not ready yet
+            return True
     except Exception:
         return False
 
