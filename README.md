@@ -4,6 +4,10 @@
 
 ---
 
+> **⚡ Just want to get started?** See [SIMPLE_START.md](SIMPLE_START.md) for the 2 commands you need!
+
+---
+
 ## 🚀 QUICK START (ONE COMMAND)
 
 **First time? Clone the repository:**
