@@ -18,23 +18,32 @@ cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-
 
 If you're seeing **"No such file or directory"** or **"invalid option"** error, it's likely because:
 
-1. **You're not in the correct directory** when running the script
-2. **The repository wasn't cloned properly**
+1. **You haven't cloned the repository yet** (most common!)
+2. **You're not in the correct directory** when running the script
 3. **You're using the wrong command**
 
 ---
 
 ## ✅ CORRECT WAY TO RUN
 
-### Step 1: Navigate to the Repository Directory
+### Step 0: Clone the Repository (If You Haven't Already!)
 
-First, you MUST be in the repository root directory:
+**FIRST**, you need to clone the repository. If the `find` command returns nothing, you don't have it yet:
 
 ```bash
-cd /path/to/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+# Navigate to your home directory
+cd ~
+
+# Clone the repository
+git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
 ```
 
-Or if you just cloned it (NOTE: Use ./ prefix since directory name starts with a hyphen):
+This will create the directory in your current location.
+
+### Step 1: Navigate to the Repository Directory
+
+**IMPORTANT:** Use `./` prefix because the directory name starts with a hyphen:
+
 ```bash
 cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 ```
@@ -96,13 +105,17 @@ LAUNCH_WEB_INTERFACE.sh  # May fail depending on PATH
    find ~ -name "LAUNCH_WEB_INTERFACE.sh" 2>/dev/null
    ```
 
-2. Navigate to that directory:
+2. **If `find` returns NOTHING**, you haven't cloned the repository yet:
    ```bash
-   cd /path/shown/above
+   cd ~
+   git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
+   cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+   bash LAUNCH_WEB_INTERFACE.sh
    ```
 
-3. Run the script:
+3. **If `find` shows a path**, navigate to that directory (remember the `./` prefix):
    ```bash
+   cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
    bash LAUNCH_WEB_INTERFACE.sh
    ```
 

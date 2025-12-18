@@ -6,14 +6,21 @@
 
 ## 🚀 QUICK START (ONE COMMAND)
 
-**IMPORTANT:** You must be in the repository directory to run this command!
+**First time? Clone the repository:**
 
 ```bash
-# First, navigate to the repository directory
+cd ~
+git clone https://github.com/opusmax422-dot/-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-.git
+```
+
+**Then navigate and run:**
+
+```bash
+# Navigate to the repository directory
 # NOTE: Use ./ before the directory name since it starts with a hyphen
 cd ./-LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
 
-# Then run the launcher
+# Run the launcher
 bash LAUNCH_WEB_INTERFACE.sh
 ```
 
