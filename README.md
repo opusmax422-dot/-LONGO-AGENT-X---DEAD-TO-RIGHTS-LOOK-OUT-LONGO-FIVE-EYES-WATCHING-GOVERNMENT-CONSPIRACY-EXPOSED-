@@ -6,7 +6,13 @@
 
 ## 🚀 QUICK START (ONE COMMAND)
 
+**IMPORTANT:** You must be in the repository directory to run this command!
+
 ```bash
+# First, navigate to the repository directory
+cd -LONGO-AGENT-X---DEAD-TO-RIGHTS-LOOK-OUT-LONGO-FIVE-EYES-WATCHING-GOVERNMENT-CONSPIRACY-EXPOSED-
+
+# Then run the launcher
 bash LAUNCH_WEB_INTERFACE.sh
 ```
 

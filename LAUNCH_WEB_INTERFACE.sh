@@ -41,6 +41,37 @@ echo -e "${CYAN}${BOLD}  🏰 AGENT X - ONE-COMMAND WEB INTERFACE LAUNCHER${NC}"
 echo -e "${CYAN}════════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
+# Early validation: Check if we're in the correct repository
+if [ ! -f "$REPO_DIR/LAUNCH_WEB_INTERFACE.sh" ]; then
+    echo -e "${RED}❌ ERROR: Script location cannot be determined.${NC}"
+    echo ""
+    echo "This usually means the script was run in an unusual way."
+    echo "Please run the script from the repository directory:"
+    echo ""
+    echo "  cd /path/to/repository"
+    echo "  bash LAUNCH_WEB_INTERFACE.sh"
+    echo ""
+    exit 1
+fi
+
+if [ ! -d "$WEB_DIR" ]; then
+    echo -e "${RED}❌ ERROR: Web directory not found!${NC}"
+    echo ""
+    echo "Expected to find: $WEB_DIR"
+    echo "Current directory: $(pwd)"
+    echo ""
+    echo "This means you're not running the script from the repository root."
+    echo ""
+    echo "To fix this:"
+    echo "  1. Find your repository: find ~ -name 'LAUNCH_WEB_INTERFACE.sh' 2>/dev/null"
+    echo "  2. Navigate there: cd /path/shown/above/.."
+    echo "  3. Run: bash LAUNCH_WEB_INTERFACE.sh"
+    echo ""
+    echo "Or see QUICK_START_INSTRUCTIONS.md for detailed help."
+    echo ""
+    exit 1
+fi
+
 # Function to print status messages
 print_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
